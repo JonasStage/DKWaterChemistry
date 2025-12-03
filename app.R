@@ -55,7 +55,7 @@ combined_df <- data.table::rbindlist(list(marin_df,
                          rep(TRUE, .N), Enhed_new),
       Enhed = Enhed_new,
       Resultat = Multiplier*Resultat)] %>% 
-  .[, c("Enhed_new","Multiplier","Detektionsgrænse LD","Kvantifikationsgrænse","Kvalitetsmærke") := NULL] %>% 
+  .[, c("Enhed_new","Multiplier","Detektionsgrænse LD","Kvantifikationsgrænse LQ","Kvalitetsmærke") := NULL] %>% 
   setnames(., "Dybde", "Dybde (m)")
 
 combined_df %>% 
@@ -100,41 +100,44 @@ ui <- fluidPage(
     inverse = TRUE,
     nav_panel(title = "Introduktion", 
               HTML("
-                   <h1>Velkommen til denne hjemmeside om de kemiske forhold i sø, marint og vandløb</h1>
-                   <h2> Inspirationen til denne side </h2>
+                   <h1>Kemiske forhold i de danske søer, marine farvande og vandløb</h1>
+                   <h3>Inspirationen til denne side </h3>
                    <p>
-                   Denne hjemmeside er lavet for at muliggøre alle at følge den kemiske udvikling i de danske søer.
+                   Denne hjemmeside er lavet for at muliggøre alle at følge den kemiske udvikling i de akvatiske miljøer.
                    I en verden af misinformation og 'alternative'-fortællinger føler jeg at det er nødvendigt at sørge for at tal og undersøgelser om den danske natur er offentligt tilgængelige.
                    Ikke blot i form af tabeller for faglærte at undersøge, men også for lægmanden der brænder for den natur som vi færdes i, og kan følge udviklingen på tæt hold.
                    Det er ofte at passioneret ildsjæle har en meget bedre forståelse for de økologiske nicher som de kender som deres baglomme.
-                   Netop fordi de har færdes der i mange timer, på forskellige tidspunkter på året. Har set området gro, vokse, blomstre, forsvinde og gå i forfald. 
+                   Netop fordi de færdes i den i mange timer året rund. Har set området gro, vokse, blomstre, forsvinde og gå i forfald. 
                    Jeg håber at jeg kan være med til at styrke samarbejdet mellem de lidenskabelige og videnskabelige ved at lave dette værktøj i form af denne side. 
                    </p>
-                   <h2> How-to </h2>
+                   <h3> How-to </h3>
                    <p>
-                   Start med at vælge næste fane i toppen af siden, den der hedder 'Valg af sø'. 
-                   Her vil du finde de søer og målepunkter som der findes data fra. Et kort vil komme frem efter et par sekunder. 
-                   På kortet kan du vælge den sø du er interesseret i ved at klikke på den.
+                   Denne side består af tre undersider. På den første undersige 'Valg af område' kan du vælge det område du vil undersøge, om det enten er et enkelt punkt eller flere punkter på samme tid.
+                   Du vilfinde de målepunkter som der findes data fra. Et kort vil komme frem efter et par sekunder. 
+                   På kortet kan du vælge det målepunkt du er interesseret i ved at klikke på den.
                    Nedenfor vil der komme en tabel med alle de kemiske undersøgelser der er foretaget her.
-                   Endvidere, kan du trykke på knappen for at få en grafisk fremstilling. Ved at trykke på knappen rykkes du til næste fane. 
-                   Her kan du få en grafisk fremstilling af dataet fra søen, hvor du kan vælge hvilke parametre og tidsinterval du er intereseret i.
+                   Endvidere, kan du trykke på knappen for at få en grafisk fremstilling, dette bringer dig til underside to: 'Grafisk illustration af data'.
+                   Her kan du få en grafisk fremstilling af dataet fra det eller de målepunkter du har valgt. Du er så i stand til at vælge hvilke parametre og tidsinterval du vil have fremvist.
+                   På den tredje og sidste side 'Iltkort', her kan du bladre igennem målepunkterne for iltkoncentrationerne eller mætning, for hver uge.
                    <br>
                    God fornøjelse.
                    </p>
-                   <h2> De ferske vande i Danmark </h2>
+                   <h3> De akvatiske miljøer i Danmark </h3>
                    <p>
-                   I Danmark findes der mere end 180.000 søer og damme over 1 hektar. På trods af dette er det et fåtal af disse der er i god økologisk tilstand. 
+                   De fleste har nok hørt historierne omkring de akvatiske miljøers tilstand de senere år. Algeopblomstringer, iltsvind og fiskedød er blevet allemandseje, desværre. 
+                   De senere år er der blevet sat mange ideer i søen, men faktum er at de akvatiske miljøer er blevet negligeret over mange år, og der skal handling til.
+                   Vi har i Danmark mere end 180.000 søer og damme over 1 hektar. På trods af dette er det et fåtal af disse der er i god økologisk tilstand. 
                    Vi er i Danmark forpligtet til at opfylde EU's vandrammedirektiv, hvori et af kravene er at alle landets søer har mindst god økologisk tilstand i 2027.
                    I den seneste opgørelse af de økologiske og kemiske tilstande af søerne fra 2023, hvor 986 søer blev undersøgt var kun 5 i god tilstand, og rapporten spår en dyster fremtid for søerne.
                    Jævnfør en rapport fra 2019, spås det at ca. 56% af søerne ikke når målet om god økologisk tilstand inden 2027.
                    I 2023 konkluderede man mere end 30% af søerne er i ringe økologisk tilstand, samt at hhv. 23% er i dårlig og moderat tilstand.
-                   Denne ringe kvalitet i vores søer skyldes hovedsagligt høje tilførelser af næringsstofferne, fosfor (P) og kvælstof (N),
+                   Denne ringe kvalitet i vores akvatiske miljøer skyldes hovedsagligt høje tilførelser af næringsstofferne, fosfor (P) og kvælstof (N).
                    </p>
-                   <h2> Datasættet </h2>
+                   <h3> Datasættet </h3>
                    <p>
                    Det kemiske datasæt der er brugt på denne side, stammer fra <a href='https://kemidata.miljoeportal.dk'>Miljøportalen</a>, hvor det kan hentes af alle, dog kun i tabel-form. 
                    Endvidere, er det muligt at hente data for mange flere parametre end blot de kemiske, også de biologiske og til dels fysiske. 
-                   For at sikre at dataet er ajour hentes det en gang om måneden. 
+                   For at sikre at dataet er ajour hentes det en gang om ugen 
                    <br>
                    <br>
                    Denne hjemmeside er lavet af <a href='mailto:Jonassoe@biology.sdu.dk'</a> Jonas Stage Sø</a>, Ph.D., ferskvandsbiolog, Postdoc ved Syddansk Universitet.
@@ -153,12 +156,11 @@ ui <- fluidPage(
                    <br>
                    <p>
                    Siden kan tage et par sekunder om at indlæse.
-                   Vælg den sø du gerne vil se data fra.
-                   Du kan undersøge kortet for hvilke søer der ligger data for, ved at forstørre kortet.
-                   Når du har fundet en sø eller målepunkt du gerne vil undersøge, klik da på det. 
-                   Søerne som fremstår som blå på kortet er de søer hvor der ligger kemiske data tilgængelige.
+                   Vælg det målepunkt du gerne vil se data fra eller marker flere ved at tegne en ramme om flere punkter.
+                   Du kan undersøge kortet for hvilke målepunkter der findes ved at forstørre kortet.
+                   Når du har fundet et målepunkt du gerne vil undersøge klik da på det eller tegn et område ved at klikke på et af værktøjerne i venstre side af kortet.  
                    <br>
-                   I nogle tilfælde overlapper målepunkterne ikke med en sø, disse vil derfor blive vidst som en prik på kortet. 
+                   Hvis du tegner et område er det vigtigt at dette ikke danner flere overlappende linjer (feks. en butterfly) da dette vil give en fejl på hjemmesiden og den vil reset automatisk
                    <br>
                    </p>
                    "
@@ -174,7 +176,7 @@ ui <- fluidPage(
                         HTML("
                    <br>
                    <p>
-                   Her nedenfor vil du se en tabel med alle de målinger der er lavet for den sø du har valgt.
+                   Her nedenfor vil du se en tabel med alle de målinger der er lavet for de/det målepunkt du har valgt.
                    Du kan også sortere, filtrere eller søge i målingerne.
                    </p>
                    "),
@@ -184,7 +186,7 @@ ui <- fluidPage(
               value = "graph_page",
               HTML("
                  <p>
-                 Her kan du se en grafisk fremstilling af den/de stationer du valgte på foregående side. 
+                 Her kan du se en grafisk fremstilling af den/de målepunkter du valgte på foregående side. 
                  Du skal starte med at vælge hvilke stofparametre du vil undersøge før den grafiske fremstilling kommer frem. 
                  <br>
                  Du kan i venstre side vælge hvilke stofparametre og tidsinterval du vil undersøge nærmere. <br>
@@ -194,7 +196,7 @@ ui <- fluidPage(
                 sidebar = sidebar(
                   width = 300,
                   checkboxGroupInput("analysis_plot_select", "Vælg stofparametre at undersøge:"),
-                  checkboxGroupInput("medie_plot_select", "Vælg hvilket medie du vil undersøge:"),
+                  checkboxGroupInput("medie_plot_select", "Vælg hvilket miljø du vil undersøge:"),
                   checkboxGroupInput("prøvetype_select", "Vælg hvilken prøvetype du vil inkludere i dataet:"),
                   sliderInput("depth_plot_select", "Vælg vanddybder at undersøge:", min =0, max =100, value =c(0,100)),
                   sliderInput("chemistry_year_select", "Vælg tidsintervallet at undersøge:", min = 1900, max = 2025,value = c(1900,2025), sep = "")
@@ -204,20 +206,22 @@ ui <- fluidPage(
                 )
               )
     ),
-    nav_panel(title = "Ilt kort", 
+    nav_panel(title = "Iltkort", 
               value = "oxygen_page",
               HTML("
                        <p>
-                       Her kan du se en grafisk fremstilling af den/de stationer du valgte på foregående side. 
-                       Du skal starte med at vælge hvilke stofparametre du vil undersøge før den grafiske fremstilling kommer frem. 
+                       Her kan du se en grafisk fremstilling ilt koncentrationerne som de er målt i felten. 
+                       Du kan vælge hvilket miljø du vil undersøge, prøvetypen, dybde, osv. Endvidere, kan du vælge om du vil se data som en koncentration (mg/l) eller mætning (%).
                        <br>
-                       Du kan i venstre side vælge hvilke stofparametre og tidsinterval du vil undersøge nærmere. <br>
+                       Du kan nedenfor kortet gå frem og tilbage mellem ugerne. <br>
+                       Der måles som regel iltmålinger ned igennem vandsøjlen, og der ligger derfor flere målepunkter ovenpå hinanden. 
+                       Det øverste (mest overfladenær) punkt ligger øverst i den grafiske fremstilling, men ønskes der er at se værdierne længere nede i dybden kan det gøres ved at ændre på vanddybden i venstre side
                        </p>
                        "),
               layout_sidebar(
                 sidebar = sidebar(
                   width = 300,
-                  checkboxGroupInput("o2_medie_plot_select", "Vælg hvilket medie du vil undersøge:", choices = unique(ilt_df$Medie), selected = NULL),
+                  checkboxGroupInput("o2_medie_plot_select", "Vælg hvilket miljø du vil undersøge:", choices = unique(ilt_df$Medie), selected = NULL),
                   checkboxGroupInput("o2_prøvetype_select", "Vælg hvilken prøvetype du vil inkludere i dataet:", choices = unique(ilt_df$Prøvetype), selected = unique(ilt_df$Prøvetype)),
                   radioButtons("o2_type", "Vælg om du vil se ilt koncentration (mg/l) eller mætning (%)", choices = c("Koncentration" = "Oxygen indhold","Mætning" = "Oxygenmætning")),
                   sliderInput("o2_depth_plot_select", "Vælg vanddybder at undersøge:", min =min(ilt_df$`Dybde (m)`), max =max(ilt_df$`Dybde (m)`), value =c(min(ilt_df$`Dybde (m)`),max(ilt_df$`Dybde (m)`))),
