@@ -80,14 +80,14 @@ combined_df %>%
                          Stofparameter == "Oxygen indhold" & Resultat < 6 ~ "#F46D43",
                          Stofparameter == "Oxygen indhold" & Resultat < 8 ~ "#D9EF8B",
                          Stofparameter == "Oxygen indhold" & Resultat < 10 ~ "#66BD63",
-                         Stofparameter == "Oxygen indhold" & Resultat > 10 ~ "#006837",
+                         Stofparameter == "Oxygen indhold" & Resultat >= 10 ~ "#006837",
                          
                          Stofparameter == "Oxygenmætning" & Resultat < 20 ~ "#A50026",
                          Stofparameter == "Oxygenmætning" & Resultat < 40 ~ "#D73027",
                          Stofparameter == "Oxygenmætning" & Resultat < 60 ~ "#F46D43",
                          Stofparameter == "Oxygenmætning" & Resultat < 80 ~ "#D9EF8B",
                          Stofparameter == "Oxygenmætning" & Resultat < 100 ~ "#66BD63",
-                         Stofparameter == "Oxygenmætning" & Resultat > 100 ~ "#006837",
+                         Stofparameter == "Oxygenmætning" & Resultat >= 100 ~ "#006837",
          )) -> ilt_df
 
 
