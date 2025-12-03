@@ -95,7 +95,7 @@ combined_df %>%
 ui <- fluidPage(
   page_navbar(
     id = "inTabset",
-    title = "Sø kemiske data",
+    title = "Akvatiske kemi data",
     bg = "#2D89C8",
     inverse = TRUE,
     nav_panel(title = "Introduktion", 
