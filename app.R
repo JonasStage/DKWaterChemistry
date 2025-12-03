@@ -1,5 +1,5 @@
 library(shiny);library(data.table);library(magrittr);library(leaflet);library(bslib);library(leaflet.extras);library(sf);library(dplyr)
-library(DT);library(lubridate);library(ggplot2)
+library(DT);library(lubridate);library(ggplot2);library(shinylogs)
 # Set theme for ggplot ----
 theme_set(theme(panel.background = element_blank(),
                 panel.grid.major = element_blank(),
@@ -240,7 +240,7 @@ ui <- fluidPage(
 )
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-  
+  track_usage(storage_mode = store_json(path = "logs/"))
   # Leaflet ----
   output$map <- renderLeaflet({
     leaflet(options = leafletOptions(preferCanvas = TRUE)) %>% 
