@@ -1,0 +1,95 @@
+﻿Stofparameter,Enhed,Enhed_new,Multiplier
+"Alkalinitet,total TA",meq/l,meq/l,1
+"Alkalinitet,total TA",mmol/l,meq/l,1
+Ammoniak+ammonium,µg/l,mg/l,0.001
+Ammoniak+ammonium,mg/l,mg/l,1
+Ammoniak+ammonium-N,µg/l,mg/l,0.001
+Ammoniak+ammonium-N,mg/l,mg/l,1
+Ammonium-N,µg/l,mg/l,0.001
+Ammonium-N,mg/l,mg/l,1
+"COD, Kemisk iltforbrug",µg/l,mg/l,0.001
+"COD, Kemisk iltforbrug",mg/l,mg/l,1
+"Carbon, uorganisk",mmol/l,mg/l,12.011
+"Carbon, uorganisk",mg/l,mg/l,1
+"Carbon,organisk, NVOC",µg/l,mg/l,0.001
+"Carbon,organisk, NVOC",mg/l,mg/l,1
+Carbondioxid,mmol/l,mg/l,44.009
+Carbondioxid,mg/l,mg/l,1
+"Carbondioxid, aggr.",mmol/l,mg/l,44.009
+"Carbondioxid, aggr.",mg/l,mg/l,1
+Chlorophyl (ukorrigeret),µg/l,µg/l,1
+Chlorophyl (ukorrigeret),mg/l,µg/l,1000
+Coliforme bakt.37Gr.,CFU/100 ml,antal/100 ml,1
+Coliforme bakt.37Gr.,antal/100 ml,antal/100 ml,1
+E.coli,antal/100 ml,antal/100 ml,1
+E.coli,CFU/100 ml,antal/100 ml,1
+Farvetal-Pt,Ikke oplyst,Ikke oplyst,1
+Farvetal-Pt,mg Pt/l,mg Pt/l,1
+Fluorid,mg/l,mg/l,1
+Fluorid,µg/l,mg/l,0.001
+"Glødetab, inddampningsrest",mg/l,mg/l,1
+"Glødetab, inddampningsrest",pct TS,pct TS,1
+"Glødetab, total",pct TS,pct TS,1
+"Glødetab, total",mg/l,mg/l,1
+"Glødetab,susp.stof",mg/l,mg/l,1
+"Glødetab,susp.stof",pct TS,pct TS,1
+Konduktivitet,mS/m,mS/m,1
+Konduktivitet,S/m,mS/m,1000
+Konduktivitet,Ikke oplyst,Ikke oplyst,1
+Methan,mg/l,µg/l,1000
+Methan,µg/l,µg/l,1
+Nitrat-N,µg/l,mg/l,0.001
+Nitrat-N,mg/l,mg/l,1
+Nitrit+nitrat-N,µg/l,mg/l,0.001
+Nitrit+nitrat-N,mg/l,mg/l,1
+Nitrit-N,µg/l,mg/l,0.001
+Nitrit-N,mg/l,mg/l,1
+"Nitrogen,total N",µg/l,mg/l,0.001
+"Nitrogen,total N",mg/l,mg/l,1
+Ortho-phosphat-P,µg/l,mg/l,0.001
+Ortho-phosphat-P,mg/l,mg/l,1
+Orthophosphat,µg/l,mg/l,0.001
+Orthophosphat,mg/l,mg/l,1
+"PFAS (sum af PFOA, PFOS, PFNA og PFHxS)",ng/l,ng/l,1
+"PFAS (sum af PFOA, PFOS, PFNA og PFHxS)",µg/l,ng/l,1000
+Perfluorhexansulfonsyre (sum forgrenet og lineær),ng/l,ng/l,1
+Perfluorhexansulfonsyre (sum forgrenet og lineær),µg/l,ng/l,1000
+Perfluornonansyre (sum forgrenet og lineær),µg/l,ng/l,1000
+Perfluornonansyre (sum forgrenet og lineær),ng/l,ng/l,1
+Perfluoroctansulfonsyre (sum forgrenet og lineær),ng/l,ng/l,1
+Perfluoroctansulfonsyre (sum forgrenet og lineær),µg/l,ng/l,1000
+Perfluoroctansyre (sum forgrenet og lineær),ng/l,ng/l,1
+Perfluoroctansyre (sum forgrenet og lineær),µg/l,ng/l,1000
+Perfluoroktansulfonsyre,ng/l,ng/l,1
+Perfluoroktansulfonsyre,µg/l,ng/l,1000
+"Phosphor, total-P",µg/l,mg/l,0.001
+"Phosphor, total-P",mg/l,mg/l,1
+"Primær produktion assimilieret Carbon, integreret",mg/(m3*d),mg/(m3*d),1
+"Primær produktion assimilieret Carbon, integreret",mg/(m2*d),mg/(m2*d),1
+"Primær produktion assimilieret Carbon, integreret",mg/(m3*h),mg/(m3*d),24
+"Primær produktion assimilieret Carbon, integreret",µg/l,µg/l,1
+"Primær produktion assimilieret Carbon, integreret",l/s,l/s,1
+"Primær produktion assimilieret Carbon, potentielt",mg/(m3*h),mg/(m3*d),24
+"Primær produktion assimilieret Carbon, potentielt",mg/(m3*d),mg/(m3*d),1
+"Primær produktion assimilieret Carbon, potentielt",l/s,l/s,1
+"Primær produktion, 24 timers maximum",mg/(m2*d),mg/(m2*d),1
+"Primær produktion, 24 timers maximum",mg/(m3*h),mg/(m3*d),24
+"Primær produktion, 24 timers maximum",mg/(m3*d),mg/(m3*d),1
+SARS-CoV-2,GU/100 ml,GU/100 ml,1
+SARS-CoV-2,Ikke oplyst,Ikke oplyst,1
+"SARS-CoV-2, RNA kopier",GU/100 ml,GU/100 ml,1
+"SARS-CoV-2, RNA kopier",Ikke oplyst,Ikke oplyst,1
+"SARS-CoV-2, trend value",Ingen,Ingen,1
+"SARS-CoV-2, trend value",Ikke oplyst,Ikke oplyst,1
+Salinitet,promille,promille,1
+Salinitet,mg/l,mg/l,1
+Silicium,µg/l,mg/l,0.001
+Silicium,mg/l,mg/l,1
+Siliciumdioxid,µg/l,mg/l,0.001
+Siliciumdioxid,mg/l,mg/l,1
+Sulfid-S,µg/l,mg/l,0.001
+Sulfid-S,mg/l,mg/l,1
+"Sum af PFAS, 22 stoffer",ng/l,ng/l,1
+"Sum af PFAS, 22 stoffer",µg/l,ng/l,1000
+Vægtfylde,kg/m3,kg/m3,1
+Vægtfylde,g/ml,kg/m3,0.001
