@@ -72,24 +72,46 @@ st_as_sf(distinct_locations, coords = c("lat","long"), crs = st_crs(4326)) -> di
 
 ## Oxygen df ----
 
-combined_df %>% 
-  filter(Stofparameter %in% c("Oxygen indhold","Oxygenmætning")) %>% 
-  mutate(uge = week(Dato),
-         col = case_when(Stofparameter == "Oxygen indhold" & Resultat < 2 ~ "#A50026",
-                         Stofparameter == "Oxygen indhold" & Resultat < 4 ~ "#D73027",
-                         Stofparameter == "Oxygen indhold" & Resultat < 6 ~ "#F46D43",
-                         Stofparameter == "Oxygen indhold" & Resultat < 8 ~ "#D9EF8B",
-                         Stofparameter == "Oxygen indhold" & Resultat < 10 ~ "#66BD63",
-                         Stofparameter == "Oxygen indhold" & Resultat >= 10 ~ "#006837",
-                         
-                         Stofparameter == "Oxygenmætning" & Resultat < 20 ~ "#A50026",
-                         Stofparameter == "Oxygenmætning" & Resultat < 40 ~ "#D73027",
-                         Stofparameter == "Oxygenmætning" & Resultat < 60 ~ "#F46D43",
-                         Stofparameter == "Oxygenmætning" & Resultat < 80 ~ "#D9EF8B",
-                         Stofparameter == "Oxygenmætning" & Resultat < 100 ~ "#66BD63",
-                         Stofparameter == "Oxygenmætning" & Resultat >= 100 ~ "#006837",
-         )) -> ilt_df
+fread("data/sø_felt.csv",sep = ";", dec = ",",
+      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat", 
+                 "Målested, y-koordinat","Parameter","Resultat-attribut",
+                 "Resultat","Enhed","Kvalitetsmærke")) %>% 
+  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_lake_df
 
+fread("data/marin_felt.csv",sep = ";", dec = ",",
+      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat", 
+                 "Målested, y-koordinat","Parameter","Resultat-attribut",
+                 "Resultat","Enhed","Kvalitetsmærke")) %>% 
+  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) %>% 
+  mutate(Medie = "Marin") -> ilt_marin_df
+
+fread("data/vandløb_felt.csv",sep = ";", dec = ",",
+      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat", 
+                 "Målested, y-koordinat","Parameter","Resultat-attribut",
+                 "Resultat","Enhed","Kvalitetsmærke")) %>% 
+  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) %>% 
+  mutate(Medie = "Vandløb") -> ilt_stream_df
+
+
+data.table::rbindlist(list(ilt_lake_df,
+                           ilt_marin_df,
+                           ilt_stream_df),
+                      fill = T) %>% 
+  mutate(Dato = dmy_hms(Dato),
+         uge = week(Dato),
+         col = case_when(Parameter == "Oxygen indhold" & Resultat < 2 ~ "#A50026",
+                         Parameter == "Oxygen indhold" & Resultat < 4 ~ "#D73027",
+                         Parameter == "Oxygen indhold" & Resultat < 6 ~ "#F46D43",
+                         Parameter == "Oxygen indhold" & Resultat < 8 ~ "#D9EF8B",
+                         Parameter == "Oxygen indhold" & Resultat < 10 ~ "#66BD63",
+                         Parameter == "Oxygen indhold" & Resultat >= 10 ~ "#006837",
+                         
+                         Parameter == "Oxygenmætning" & Resultat < 20 ~ "#A50026",
+                         Parameter == "Oxygenmætning" & Resultat < 40 ~ "#D73027",
+                         Parameter == "Oxygenmætning" & Resultat < 60 ~ "#F46D43",
+                         Parameter == "Oxygenmætning" & Resultat < 80 ~ "#D9EF8B",
+                         Parameter == "Oxygenmætning" & Resultat < 100 ~ "#66BD63",
+                         Parameter == "Oxygenmætning" & Resultat >= 100 ~ "#006837")) -> ilt_df
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -195,14 +217,14 @@ ui <- fluidPage(
               layout_sidebar(
                 sidebar = sidebar(
                   width = 300,
-                  checkboxGroupInput("analysis_plot_select", "Vælg stofparametre at undersøge:"),
+                  selectInput("analysis_plot_select", "Vælg stofparametre at undersøge:", choices = "NA", multiple = T),
                   checkboxGroupInput("medie_plot_select", "Vælg hvilket miljø du vil undersøge:"),
                   checkboxGroupInput("prøvetype_select", "Vælg hvilken prøvetype du vil inkludere i dataet:"),
                   sliderInput("depth_plot_select", "Vælg vanddybder at undersøge:", min =0, max =100, value =c(0,100)),
                   sliderInput("chemistry_year_select", "Vælg tidsintervallet at undersøge:", min = 1900, max = 2025,value = c(1900,2025), sep = "")
                 ),
                 mainPanel(
-                  plotOutput("chem_plot_output", height = 800)
+                  plotOutput("chem_plot_output", height = 700)
                 )
               )
     ),
@@ -229,7 +251,7 @@ ui <- fluidPage(
                   sliderInput("o2_week_select", "Vælg hvilken uge du vil se data fra:", min = 1, max = 52,value = 26)
                 ),
                 mainPanel(
-                  leafletOutput("o2_plot_output", height = 800),
+                  leafletOutput("o2_plot_output", height = 600),
                   fluidRow(
                     actionButton("previous_week", "Forrige uge", width = "50%"),
                     actionButton("next_week", "Næste uge", width = "50%"))
@@ -250,7 +272,7 @@ server <- function(input, output) {
                        lng = ~long, 
                        lat = ~lat,
                        stroke =F, 
-                       radius = 3,
+                       radius = 5,
                        label = ~Stedtekst,
                        fillColor = "royalblue",
                        fillOpacity = 1,
@@ -262,7 +284,7 @@ server <- function(input, output) {
                        lng = ~long, 
                        lat = ~lat,
                        stroke =F, 
-                       radius = 3,
+                       radius = 5,
                        label = ~Stedtekst,
                        fillColor = "forestgreen", 
                        fillOpacity = 1,
@@ -274,7 +296,7 @@ server <- function(input, output) {
                        lng = ~long, 
                        lat = ~lat,
                        stroke =F, 
-                       radius = 3,
+                       radius = 5,
                        label = ~Stedtekst,
                        fillColor = "darkorange", 
                        fillOpacity = 1,
@@ -348,7 +370,7 @@ server <- function(input, output) {
                StedID %in% values$select_id) %>% 
       mutate(Dato = ymd_hms(Dato)) -> return_data
     
-    updateCheckboxGroupInput(inputId = "analysis_plot_select", choices = sort(unique(return_data[,Stofparameter])))
+    updateSelectInput(inputId = "analysis_plot_select", choices = sort(unique(return_data[,Stofparameter])))
     updateCheckboxGroupInput(inputId = "prøvetype_select", choices = sort(unique(return_data[,Prøvetype])), selected = unique(return_data[,Prøvetype]))
     updateCheckboxGroupInput(inputId = "medie_plot_select", choices = sort(unique(return_data[,Medie])), selected = unique(return_data[,Medie]))
     updateSliderInput(inputId = "depth_plot_select", min = min(return_data[,`Dybde (m)`]), max = max(return_data[,`Dybde (m)`]))
@@ -422,6 +444,7 @@ server <- function(input, output) {
             strip.background = element_blank(),
             strip.text.x = element_blank(),
             title = element_text(size = 18)) + 
+      guides(fill=guide_legend(ncol=2)) +
       labs(x= "Dato", 
            y = "",
            fill = "Stedtekst") + 
