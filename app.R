@@ -20,6 +20,19 @@ theme_set(theme(panel.background = element_blank(),
 
 
 # Read in data ----
+
+## Only for testing ----
+# marin_df <- data.table::fread("data/sample_data/marin.csv")
+# lake_df <- data.table::fread("data/sample_data/sø.csv")
+# stream_df <- data.table::fread("data/sample_data/vandløb.csv")
+# 
+# fread("data/sample_data/sø_felt.csv")-> ilt_lake_df
+# fread("data/sample_data/marin_felt.csv")-> ilt_marin_df
+# fread("data/sample_data/vandløb_felt.csv") -> ilt_stream_df
+
+## END TESTING
+
+
 marin_df <- data.table::fread("data/marin.csv",
                               sep = ";", dec = ",",
                               select = c("StedID","Stedtekst","Medie", "Vandområde","Dato","Prøvetype","Målested, x-koordinat", "Målested, y-koordinat",
@@ -27,14 +40,14 @@ marin_df <- data.table::fread("data/marin.csv",
                                          "Resultat","Enhed","Detektionsgrænse LD","Kvantifikationsgrænse LQ","Kvalitetsmærke"))
 
 lake_df <- data.table::fread("data/sø.csv", sep = ";", dec = ",",
-                             select = c("StedID","Stedtekst","Vandområde","Dato","Medie","Prøvetype","Dybde (m)","Målested, x-koordinat", 
+                             select = c("StedID","Stedtekst","Vandområde","Dato","Medie","Prøvetype","Dybde (m)","Målested, x-koordinat",
                                         "Målested, y-koordinat","Faktiske dybder (m)","Analysefraktion","Stofparameter","Resultat-attribut",
                                         "Resultat","Enhed","Detektionsgrænse LD","Kvantifikationsgrænse LQ","Kvalitetsmærke"))
 
 stream_df <- data.table::fread("data/vandløb.csv",sep = ";", dec = ",",
                                select = c("StedID","Stedtekst","Vandområde","Dato","Prøvetype","Målested, x-koordinat","Medie",
                                           "Målested, y-koordinat","Analysefraktion","Stofparameter","Resultat-attribut",
-                                          "Resultat","Enhed","Detektionsgrænse LD","Kvantifikationsgrænse LQ","Kvalitetsmærke")) 
+                                          "Resultat","Enhed","Detektionsgrænse LD","Kvantifikationsgrænse LQ","Kvalitetsmærke"))
 unit_changer <- data.table::fread("data/Units.csv")
 
 combined_df <- data.table::rbindlist(list(marin_df,
@@ -73,30 +86,29 @@ st_as_sf(distinct_locations, coords = c("lat","long"), crs = st_crs(4326)) -> di
 ## Oxygen df ----
 
 fread("data/sø_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat", 
+      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
                  "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>% 
+                 "Resultat","Enhed","Kvalitetsmærke")) %>%
   filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_lake_df
 
 fread("data/marin_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat", 
+      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
                  "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>% 
-  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) %>% 
-  mutate(Medie = "Marin") -> ilt_marin_df
+                 "Resultat","Enhed","Kvalitetsmærke")) %>%
+  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_marin_df
 
 fread("data/vandløb_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat", 
+      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
                  "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>% 
-  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) %>% 
-  mutate(Medie = "Vandløb") -> ilt_stream_df
+                 "Resultat","Enhed","Kvalitetsmærke")) %>%
+  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_stream_df
 
 
 data.table::rbindlist(list(ilt_lake_df,
                            ilt_marin_df,
                            ilt_stream_df),
                       fill = T) %>% 
+  setnames(., c("Målested, x-koordinat","Målested, y-koordinat"),c("x","y")) %>% 
   mutate(Dato = dmy_hms(Dato),
          uge = week(Dato),
          col = case_when(Parameter == "Oxygen indhold" & Resultat < 2 ~ "#A50026",
@@ -111,7 +123,11 @@ data.table::rbindlist(list(ilt_lake_df,
                          Parameter == "Oxygenmætning" & Resultat < 60 ~ "#F46D43",
                          Parameter == "Oxygenmætning" & Resultat < 80 ~ "#D9EF8B",
                          Parameter == "Oxygenmætning" & Resultat < 100 ~ "#66BD63",
-                         Parameter == "Oxygenmætning" & Resultat >= 100 ~ "#006837")) -> ilt_df
+                         Parameter == "Oxygenmætning" & Resultat >= 100 ~ "#006837"),
+          long = oce::utm2lonlat(x,y, zone = 32)$longitude,
+          lat = oce::utm2lonlat(x,y, zone = 32)$latitude,
+          Dybde = case_when(is.na(Dybde) ~ 0.01,
+                            T ~ Dybde)) -> ilt_df
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -244,9 +260,8 @@ ui <- fluidPage(
                 sidebar = sidebar(
                   width = 300,
                   checkboxGroupInput("o2_medie_plot_select", "Vælg hvilket miljø du vil undersøge:", choices = unique(ilt_df$Medie), selected = NULL),
-                  checkboxGroupInput("o2_prøvetype_select", "Vælg hvilken prøvetype du vil inkludere i dataet:", choices = unique(ilt_df$Prøvetype), selected = unique(ilt_df$Prøvetype)),
                   radioButtons("o2_type", "Vælg om du vil se ilt koncentration (mg/l) eller mætning (%)", choices = c("Koncentration" = "Oxygen indhold","Mætning" = "Oxygenmætning")),
-                  sliderInput("o2_depth_plot_select", "Vælg vanddybder at undersøge:", min =min(ilt_df$`Dybde (m)`), max =max(ilt_df$`Dybde (m)`), value =c(min(ilt_df$`Dybde (m)`),max(ilt_df$`Dybde (m)`))),
+                  sliderInput("o2_depth_plot_select", "Vælg vanddybder at undersøge:", min =min(ilt_df$Dybde), max =max(ilt_df$Dybde), value =c(min(ilt_df$Dybde),max(ilt_df$Dybde))),
                   sliderInput("o2_year_select", "Vælg hvilket år du vil undersøge:", min = min(year(ilt_df$Dato)), max = max(year(ilt_df$Dato)),value = max(year(ilt_df$Dato)), sep = ""),
                   sliderInput("o2_week_select", "Vælg hvilken uge du vil se data fra:", min = 1, max = 52,value = 26)
                 ),
@@ -457,16 +472,17 @@ server <- function(input, output) {
   
   o2_plot_df <- reactive({
     req(input$o2_medie_plot_select)
-    req(input$o2_prøvetype_select)
+
+    print(ilt_df)
+    
     ilt_df %>% 
-      filter(Stofparameter == input$o2_type,
+      filter(Parameter == input$o2_type,
              Medie %in% input$o2_medie_plot_select,
-             Prøvetype %in% input$o2_prøvetype_select,
-             between(`Dybde (m)`, input$o2_depth_plot_select[1],input$o2_depth_plot_select[2]),
+             between(Dybde, input$o2_depth_plot_select[1],input$o2_depth_plot_select[2]),
              year(Dato) == input$o2_year_select,
              uge == input$o2_week_select
       ) %>% 
-      arrange(desc(`Dybde (m)`)) -> o2_selected
+      arrange(desc(Dybde)) -> o2_selected
     print(o2_selected)
     return(o2_selected)
   })
@@ -521,12 +537,10 @@ server <- function(input, output) {
   ## Change week numbers to be only present values ----
   observe({
     req(input$o2_medie_plot_select)
-    req(input$o2_prøvetype_select)
     ilt_df %>% 
-      filter(Medie == input$o2_medie_plot_select,
-             Prøvetype %in% input$o2_prøvetype_select) -> selected_year_o2
+      filter(Medie == input$o2_medie_plot_select) -> selected_year_o2
     
-    updateSliderInput(inputId = "o2_depth_plot_select", min = min(selected_year_o2[,`Dybde (m)`], na.rm=T), max = max(selected_year_o2[,`Dybde (m)`], na.rm=T))
+    updateSliderInput(inputId = "o2_depth_plot_select", min = min(selected_year_o2[,Dybde], na.rm=T), max = max(selected_year_o2[,Dybde], na.rm=T))
     updateSliderInput(inputId = "o2_week_select", min = min(selected_year_o2[,uge], na.rm=T), max = max(selected_year_o2[,uge], na.rm=T))
     updateSliderInput(inputId = "o2_year_select", min = min(selected_year_o2[,year(Dato)], na.rm=T), max = max(selected_year_o2[,year(Dato)], na.rm=T))
   })
