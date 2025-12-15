@@ -85,30 +85,20 @@ st_as_sf(distinct_locations, coords = c("lat","long"), crs = st_crs(4326)) -> di
 
 ## Oxygen df ----
 
-fread("data/sø_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
-                 "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>%
-  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_lake_df
+fread("data/sø_felt.csv",sep = ";", dec = ",") %>% 
+  setnames(., 1:11, c("Stedtekst","Medie","Dato","x","y","Dybde","Parameter","Resultat-attribut","Resultat","Enhed","Kvalitetsmærke"))-> ilt_lake_df
 
-fread("data/marin_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
-                 "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>%
-  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_marin_df
+fread("data/marin_felt.csv",sep = ";", dec = ",") %>%
+  setnames(., 1:11, c("Stedtekst","Medie","Dato","x","y","Dybde","Parameter","Resultat-attribut","Resultat","Enhed","Kvalitetsmærke")) -> ilt_marin_df
 
-fread("data/vandløb_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
-                 "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>%
-  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_stream_df
+fread("data/vandløb_felt.csv",sep = ";", dec = ",") %>% 
+  setnames(., 1:11, c("Stedtekst","Medie","Dato","x","y","Dybde","Parameter","Resultat-attribut","Resultat","Enhed","Kvalitetsmærke")) -> ilt_stream_df
 
 
 data.table::rbindlist(list(ilt_lake_df,
                            ilt_marin_df,
                            ilt_stream_df),
                       fill = T) %>% 
-  setnames(., c("Målested, x-koordinat","Målested, y-koordinat"),c("x","y")) %>% 
   mutate(Dato = dmy_hms(Dato),
          uge = week(Dato),
          col = case_when(Parameter == "Oxygen indhold" & Resultat < 2 ~ "#A50026",
@@ -124,10 +114,10 @@ data.table::rbindlist(list(ilt_lake_df,
                          Parameter == "Oxygenmætning" & Resultat < 80 ~ "#D9EF8B",
                          Parameter == "Oxygenmætning" & Resultat < 100 ~ "#66BD63",
                          Parameter == "Oxygenmætning" & Resultat >= 100 ~ "#006837"),
-          long = oce::utm2lonlat(x,y, zone = 32)$longitude,
-          lat = oce::utm2lonlat(x,y, zone = 32)$latitude,
-          Dybde = case_when(is.na(Dybde) ~ 0.01,
-                            T ~ Dybde)) -> ilt_df
+         long = oce::utm2lonlat(x,y, zone = 32)$longitude,
+         lat = oce::utm2lonlat(x,y, zone = 32)$latitude,
+         Dybde = case_when(is.na(Dybde) ~ 0.01,
+                           T ~ Dybde)) -> ilt_df
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -472,7 +462,7 @@ server <- function(input, output) {
   
   o2_plot_df <- reactive({
     req(input$o2_medie_plot_select)
-
+    
     print(ilt_df)
     
     ilt_df %>% 
