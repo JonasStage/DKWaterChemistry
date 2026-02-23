@@ -85,31 +85,24 @@ st_as_sf(distinct_locations, coords = c("lat","long"), crs = st_crs(4326)) -> di
 
 ## Oxygen df ----
 
-fread("data/sø_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
-                 "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>%
-  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_lake_df
+fread("data/sø_felt.csv",sep = ";", dec = ",") %>% 
+  setnames(., 1:11, c("Stedtekst","Medie","Dato","x","y","Dybde","Parameter","Resultat-attribut","Resultat","Enhed","Kvalitetsmærke")) %>%
+  mutate(Resultat = stringr::str_replace(Resultat, ",","."),
+	 Resultat = readr::parse_number(Resultat),
+	 Dybde = stringr::str_replace(Dybde, ",","."),
+	 Dybde = readr::parse_number(Dybde)) -> ilt_lake_df
 
-fread("data/marin_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
-                 "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>%
-  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_marin_df
+fread("data/marin_felt.csv",sep = ";", dec = ",") %>%
+  setnames(., 1:11, c("Stedtekst","Medie","Dato","x","y","Dybde","Parameter","Resultat-attribut","Resultat","Enhed","Kvalitetsmærke")) -> ilt_marin_df
 
-fread("data/vandløb_felt.csv",sep = ";", dec = ",",
-      select = c("Stedtekst","Dato","Medie","Dybde","Målested, x-koordinat",
-                 "Målested, y-koordinat","Parameter","Resultat-attribut",
-                 "Resultat","Enhed","Kvalitetsmærke")) %>%
-  filter(Parameter %in% c("Oxygen indhold","Oxygenmætning")) -> ilt_stream_df
-
+fread("data/vandløb_felt.csv",sep = ";", dec = ",") %>% 
+  setnames(., 1:11, c("Stedtekst","Medie","Dato","x","y","Dybde","Parameter","Resultat-attribut","Resultat","Enhed","Kvalitetsmærke")) -> ilt_stream_df
 
 data.table::rbindlist(list(ilt_lake_df,
                            ilt_marin_df,
                            ilt_stream_df),
                       fill = T) %>% 
-  setnames(., c("Målested, x-koordinat","Målested, y-koordinat"),c("x","y")) %>% 
-  mutate(Dato = dmy_hms(Dato),
+	 mutate(Dato = dmy_hms(Dato),
          uge = week(Dato),
          col = case_when(Parameter == "Oxygen indhold" & Resultat < 2 ~ "#A50026",
                          Parameter == "Oxygen indhold" & Resultat < 4 ~ "#D73027",
@@ -127,7 +120,8 @@ data.table::rbindlist(list(ilt_lake_df,
           long = oce::utm2lonlat(x,y, zone = 32)$longitude,
           lat = oce::utm2lonlat(x,y, zone = 32)$latitude,
           Dybde = case_when(is.na(Dybde) ~ 0.01,
-                            T ~ Dybde)) -> ilt_df
+                            T ~ Dybde),
+	  Resultat = round(Resultat, 2)) -> ilt_df
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -139,6 +133,17 @@ ui <- fluidPage(
     nav_panel(title = "Introduktion", 
               HTML("
                    <h1>Kemiske forhold i de danske søer, marine farvande og vandløb</h1>
+                   <h3> De akvatiske miljøer i Danmark </h3>
+                   <p>
+                   De fleste har nok hørt historierne omkring de akvatiske miljøers tilstand de senere år. Algeopblomstringer, iltsvind og fiskedød er blevet allemandseje, desværre. 
+                   De senere år er der blevet sat mange ideer i søen, men faktum er at de akvatiske miljøer er blevet negligeret over mange år, og der skal handling til.
+                   Vi har i Danmark mere end 180.000 søer og damme over 1 hektar. På trods af dette er det et fåtal af disse der er i god økologisk tilstand. 
+                   Vi er i Danmark forpligtet til at opfylde EU's vandrammedirektiv, hvori et af kravene er at alle landets søer har mindst god økologisk tilstand i 2027.
+                   I den seneste opgørelse af de økologiske og kemiske tilstande af søerne fra 2023, hvor 986 søer blev undersøgt var kun 5 i god tilstand, og rapporten spår en dyster fremtid for søerne.
+                   Jævnfør en rapport fra 2019, spås det at ca. 56% af søerne ikke når målet om god økologisk tilstand inden 2027.
+                   I 2023 konkluderede man mere end 30% af søerne er i ringe økologisk tilstand, samt at hhv. 23% er i dårlig og moderat tilstand.
+                   Denne ringe kvalitet i vores akvatiske miljøer skyldes hovedsagligt høje tilførelser af næringsstofferne, fosfor (P) og kvælstof (N).
+                   </p>
                    <h3>Inspirationen til denne side </h3>
                    <p>
                    Denne hjemmeside er lavet for at muliggøre alle at følge den kemiske udvikling i de akvatiske miljøer.
@@ -159,17 +164,6 @@ ui <- fluidPage(
                    På den tredje og sidste side 'Iltkort', her kan du bladre igennem målepunkterne for iltkoncentrationerne eller mætning, for hver uge.
                    <br>
                    God fornøjelse.
-                   </p>
-                   <h3> De akvatiske miljøer i Danmark </h3>
-                   <p>
-                   De fleste har nok hørt historierne omkring de akvatiske miljøers tilstand de senere år. Algeopblomstringer, iltsvind og fiskedød er blevet allemandseje, desværre. 
-                   De senere år er der blevet sat mange ideer i søen, men faktum er at de akvatiske miljøer er blevet negligeret over mange år, og der skal handling til.
-                   Vi har i Danmark mere end 180.000 søer og damme over 1 hektar. På trods af dette er det et fåtal af disse der er i god økologisk tilstand. 
-                   Vi er i Danmark forpligtet til at opfylde EU's vandrammedirektiv, hvori et af kravene er at alle landets søer har mindst god økologisk tilstand i 2027.
-                   I den seneste opgørelse af de økologiske og kemiske tilstande af søerne fra 2023, hvor 986 søer blev undersøgt var kun 5 i god tilstand, og rapporten spår en dyster fremtid for søerne.
-                   Jævnfør en rapport fra 2019, spås det at ca. 56% af søerne ikke når målet om god økologisk tilstand inden 2027.
-                   I 2023 konkluderede man mere end 30% af søerne er i ringe økologisk tilstand, samt at hhv. 23% er i dårlig og moderat tilstand.
-                   Denne ringe kvalitet i vores akvatiske miljøer skyldes hovedsagligt høje tilførelser af næringsstofferne, fosfor (P) og kvælstof (N).
                    </p>
                    <h3> Datasættet </h3>
                    <p>
@@ -259,10 +253,9 @@ ui <- fluidPage(
               layout_sidebar(
                 sidebar = sidebar(
                   width = 300,
-                  checkboxGroupInput("o2_medie_plot_select", "Vælg hvilket miljø du vil undersøge:", choices = unique(ilt_df$Medie), selected = NULL),
-                  radioButtons("o2_type", "Vælg om du vil se ilt koncentration (mg/l) eller mætning (%)", choices = c("Koncentration" = "Oxygen indhold","Mætning" = "Oxygenmætning")),
-                  sliderInput("o2_depth_plot_select", "Vælg vanddybder at undersøge:", min =min(ilt_df$Dybde), max =max(ilt_df$Dybde), value =c(min(ilt_df$Dybde),max(ilt_df$Dybde))),
-                  sliderInput("o2_year_select", "Vælg hvilket år du vil undersøge:", min = min(year(ilt_df$Dato)), max = max(year(ilt_df$Dato)),value = max(year(ilt_df$Dato)), sep = ""),
+                  radioButtons("o2_medie_plot_select", "Vælg hvilket miljø du vil undersøge:", choices = c("Sø", "Marin","Vandløb"), selected = character(0)),
+                  sliderInput("o2_depth_plot_select", "Vælg vanddybder at undersøge:", min =min(ilt_df$Dybde, na.rm =T), max =max(ilt_df$Dybde, na.rm=T), value =c(min(ilt_df$Dybde, na.rm=T),max(ilt_df$Dybde, na.rm=T))),
+                  sliderInput("o2_year_select", "Vælg hvilket år du vil undersøge:", min = min(year(ilt_df$Dato), na.rm=T), max = max(year(ilt_df$Dato), na.rm=T),value = max(year(ilt_df$Dato), na.rm=T), sep = ""),
                   sliderInput("o2_week_select", "Vælg hvilken uge du vil se data fra:", min = 1, max = 52,value = 26)
                 ),
                 mainPanel(
@@ -476,8 +469,7 @@ server <- function(input, output) {
     print(ilt_df)
     
     ilt_df %>% 
-      filter(Parameter == input$o2_type,
-             Medie %in% input$o2_medie_plot_select,
+      filter(Medie %in% input$o2_medie_plot_select,
              between(Dybde, input$o2_depth_plot_select[1],input$o2_depth_plot_select[2]),
              year(Dato) == input$o2_year_select,
              uge == input$o2_week_select
@@ -493,22 +485,11 @@ server <- function(input, output) {
       setView(11.67019958401003,55.92425708205749, zoom = 6) %>% 
       addProviderTiles("Esri.WorldImagery", group = "Satellit") %>% 
       addProviderTiles(providers$CartoDB.Positron, group = "CartoDB") %>% 
-      addResetMapButton() 
-    
-    if(input$o2_type == "Oxygen indhold") {
-      
-      m %>% 
-        addLegend(position = "bottomleft",
-                  labels = c("< 2 mg/l","< 4 mg/l","< 6 mg/l","< 8 mg/l","< 10 mg/l","> 10 mg/l"),
-                  colors = c("#A50026","#D73027","#F46D43","#D9EF8B","#66BD63","#006837"),
-                  opacity = 1)
-    } else if(input$o2_type == "Oxygenmætning"){ 
-      m %>% 
-        addLegend(position = "bottomleft",
-                  labels = c("< 20%","< 40%","< 60%","< 80%","< 100%","> 100%"),
-                  colors = c("#A50026","#D73027","#F46D43","#D9EF8B","#66BD63","#006837"),
-                  opacity = 1) 
-    }
+      addResetMapButton()       %>%       
+      addLegend(position = "bottomleft",
+                labels = c("< 2 mg/l","< 4 mg/l","< 6 mg/l","< 8 mg/l","< 10 mg/l","> 10 mg/l"),
+                colors = c("#A50026","#D73027","#F46D43","#D9EF8B","#66BD63","#006837"),
+                opacity = 1) 
     
   })
   
