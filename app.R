@@ -1,5 +1,5 @@
 library(shiny);library(data.table);library(magrittr);library(leaflet);library(bslib);library(leaflet.extras);library(sf);library(dplyr)
-library(DT);library(lubridate);library(ggplot2);library(shinylogs)
+library(DT);library(lubridate);library(ggplot2);library(shinylogs);library(ggpubr)
 # Set theme for ggplot ----
 theme_set(theme(panel.background = element_blank(),
                 panel.grid.major = element_blank(),
@@ -17,6 +17,10 @@ theme_set(theme(panel.background = element_blank(),
                 legend.background = element_rect(color = "white"),
                 axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
                 axis.title.y.right = element_text(margin = margin(t = 0, r = 0, b = 0, l = 10))))
+
+######## TO DO LIST ######## 
+######## Add plotly to o2 plot and chem plot ########
+######## See if this helps on the readability on chem plot ########
 
 
 # Read in data ----
@@ -103,25 +107,19 @@ data.table::rbindlist(list(ilt_lake_df,
                            ilt_stream_df),
                       fill = T) %>% 
 	 mutate(Dato = dmy_hms(Dato),
-         uge = week(Dato),
-         col = case_when(Parameter == "Oxygen indhold" & Resultat < 2 ~ "#A50026",
-                         Parameter == "Oxygen indhold" & Resultat < 4 ~ "#D73027",
-                         Parameter == "Oxygen indhold" & Resultat < 6 ~ "#F46D43",
-                         Parameter == "Oxygen indhold" & Resultat < 8 ~ "#D9EF8B",
-                         Parameter == "Oxygen indhold" & Resultat < 10 ~ "#66BD63",
-                         Parameter == "Oxygen indhold" & Resultat >= 10 ~ "#006837",
-                         
-                         Parameter == "Oxygenmætning" & Resultat < 20 ~ "#A50026",
-                         Parameter == "Oxygenmætning" & Resultat < 40 ~ "#D73027",
-                         Parameter == "Oxygenmætning" & Resultat < 60 ~ "#F46D43",
-                         Parameter == "Oxygenmætning" & Resultat < 80 ~ "#D9EF8B",
-                         Parameter == "Oxygenmætning" & Resultat < 100 ~ "#66BD63",
-                         Parameter == "Oxygenmætning" & Resultat >= 100 ~ "#006837"),
+          uge = week(Dato),
+          col = case_when(Parameter == "Oxygen indhold" & Resultat < 2 ~ "#A50026",
+                          Parameter == "Oxygen indhold" & Resultat < 4 ~ "#D73027",
+                          Parameter == "Oxygen indhold" & Resultat < 6 ~ "#F46D43",
+                          Parameter == "Oxygen indhold" & Resultat < 8 ~ "#D9EF8B",
+                          Parameter == "Oxygen indhold" & Resultat < 10 ~ "#66BD63",
+                          Parameter == "Oxygen indhold" & Resultat >= 10 ~ "#006837"),
           long = oce::utm2lonlat(x,y, zone = 32)$longitude,
           lat = oce::utm2lonlat(x,y, zone = 32)$latitude,
           Dybde = case_when(is.na(Dybde) ~ 0.01,
                             T ~ Dybde),
-	  Resultat = round(Resultat, 2)) -> ilt_df
+      	  Resultat = round(Resultat, 2),
+      	  id = row_number()) -> ilt_df
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -199,7 +197,7 @@ ui <- fluidPage(
                         ),
                         actionButton("delete",label="Fjern markeret stationer og indtegnet områder"),
                         br(),br(),
-                        leafletOutput("map", width = "100%", height = 600),
+                        leafletOutput("map", width = "80%", height = 800),
                         br(),
                         tags$script('$(".sidebar-toggle").on("click", function() { $(this).trigger("shown"); });'),
                         actionButton("page_change",label="Når du har valgt en station eller tegnet et område, kan du skifte til grafisk fremstilling ved at trykke her."),
@@ -226,7 +224,7 @@ ui <- fluidPage(
                  "),
               layout_sidebar(
                 sidebar = sidebar(
-                  width = 300,
+                  width = "20vw",
                   selectInput("analysis_plot_select", "Vælg stofparametre at undersøge:", choices = "NA", multiple = T),
                   checkboxGroupInput("medie_plot_select", "Vælg hvilket miljø du vil undersøge:"),
                   checkboxGroupInput("prøvetype_select", "Vælg hvilken prøvetype du vil inkludere i dataet:"),
@@ -234,7 +232,8 @@ ui <- fluidPage(
                   sliderInput("chemistry_year_select", "Vælg tidsintervallet at undersøge:", min = 1900, max = 2025,value = c(1900,2025), sep = "")
                 ),
                 mainPanel(
-                  plotOutput("chem_plot_output", height = 700)
+                  plotly::plotlyOutput("chem_plot_output", width = "70vw", height = "70vh"),
+                  plotOutput("chem_legend", width = "70vw", height = "70vh")
                 )
               )
     ),
@@ -256,20 +255,31 @@ ui <- fluidPage(
                   radioButtons("o2_medie_plot_select", "Vælg hvilket miljø du vil undersøge:", choices = c("Sø", "Marin","Vandløb"), selected = character(0)),
                   sliderInput("o2_depth_plot_select", "Vælg vanddybder at undersøge:", min =min(ilt_df$Dybde, na.rm =T), max =max(ilt_df$Dybde, na.rm=T), value =c(min(ilt_df$Dybde, na.rm=T),max(ilt_df$Dybde, na.rm=T))),
                   sliderInput("o2_year_select", "Vælg hvilket år du vil undersøge:", min = min(year(ilt_df$Dato), na.rm=T), max = max(year(ilt_df$Dato), na.rm=T),value = max(year(ilt_df$Dato), na.rm=T), sep = ""),
-                  sliderInput("o2_week_select", "Vælg hvilken uge du vil se data fra:", min = 1, max = 52,value = 26)
+                  sliderInput("o2_week_select", "Vælg hvilke uger du vil se data fra:", min = 1, max = 52,value = c(1,52))
                 ),
                 mainPanel(
                   leafletOutput("o2_plot_output", height = 600),
-                  fluidRow(
-                    actionButton("previous_week", "Forrige uge", width = "50%"),
-                    actionButton("next_week", "Næste uge", width = "50%"))
                 )
               )
-    )
+            ),
+    nav_panel(title = "Ilt udvikling", 
+              value = "oxygen_development_page",
+              HTML("<p>På denne side vil du kunne undersøge hvordan ilt koncentrationerne har ændret sig over tid. Klik på en af stationerne fra den tidligere side, så kan du kigge nærmere på data derfra.         
+                       "),
+              layout_sidebar(
+                sidebar = sidebar(
+                  width = 300,
+                  sliderInput("selected_click_year", "Vælg hvilke år du vil undersøge:", min = 1900, max = year(Sys.time()),value = c(1900,year(Sys.time())), sep = ""),
+                  ),
+                mainPanel(
+                  plotOutput("oxygen_development_plot", height = 700)
+                )
+              )
+            )
   )
 )
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
   track_usage(storage_mode = store_json(path = "logs/"))
   # Leaflet ----
   output$map <- renderLeaflet({
@@ -422,7 +432,7 @@ server <- function(input, output) {
   
   # Plot graphical data ----
   
-  output$chem_plot_output <- renderPlot({
+  output$chem_plot_output <- plotly::renderPlotly({
     req(input$analysis_plot_select)
     req(filtered_data())
     
@@ -434,7 +444,8 @@ server <- function(input, output) {
              between(`Dybde (m)`, input$depth_plot_select[1],input$depth_plot_select[2])  ,
              Prøvetype %in% input$prøvetype_select,
              Medie %in% input$medie_plot_select) %>% 
-      mutate(parameter_unit = paste0(Stofparameter," (",Enhed,")")) -> plot_data
+      mutate(parameter_unit = paste0(Stofparameter," (",Enhed,")"),
+             Stedtekst = as.factor(Stedtekst)) -> plot_data
     
     if (nrow(plot_data) == 0) {
       validate("Der er ingen observationer. Prøv at ændre stofparametre, prøvetype, dybde eller årrække.")
@@ -444,38 +455,48 @@ server <- function(input, output) {
     
     plot_data %>% 
       ggplot(aes(Dato, Resultat)) + 
-      geom_point(size = 3,aes(shape = Medie,fill = as.factor(Stedtekst)), col = "black", shape = 21) + 
-      geom_line(aes(col = as.factor(Stedtekst)), show.legend = F) + 
-      scale_x_datetime(date_labels = "%F") +
-      facet_grid(parameter_unit~1, scales = "free_y", switch = "y")  +
+      geom_point(size = 3,aes(shape = Medie,fill = Stedtekst), col = "black", shape = 21) + 
+      geom_line(aes(col = Stedtekst), show.legend = F) + 
       theme(strip.placement = "outside", 
             strip.background = element_blank(),
-            strip.text.x = element_blank(),
             title = element_text(size = 18)) + 
-      guides(fill=guide_legend(ncol=2)) +
+      scale_x_datetime(date_labels = "%F") +
+      facet_grid(rows = vars(parameter_unit), scales = "free_y", switch = "y")  +
       labs(x= "Dato", 
            y = "",
            fill = "Stedtekst") + 
       scale_shape_manual(values = c(21,22,24))-> chem_plot
     
-    print(chem_plot)
+    plotly::ggplotly(chem_plot + theme(legend.position = "none")) -> chem_plot_plotly
+    
+   print(chem_plot_plotly)
   })
+  
+  output$chem_legend <- renderPlot({
+    req(chem_plot)
+    
+    
+    # Extract the legend. Returns a gtable
+    leg <- get_legend(chem_plot) %>% 
+      as_ggplot()
+    
+    print(leg)
+    
+  })
+  
   
   # Plot oxygen data ----
   
   o2_plot_df <- reactive({
     req(input$o2_medie_plot_select)
 
-    print(ilt_df)
-    
     ilt_df %>% 
       filter(Medie %in% input$o2_medie_plot_select,
              between(Dybde, input$o2_depth_plot_select[1],input$o2_depth_plot_select[2]),
              year(Dato) == input$o2_year_select,
-             uge == input$o2_week_select
+             between(uge, input$o2_week_select[1], input$o2_week_select[2])
       ) %>% 
-      arrange(desc(Dybde)) -> o2_selected
-    print(o2_selected)
+      arrange(desc(uge),desc(Dybde)) -> o2_selected
     return(o2_selected)
   })
   
@@ -505,6 +526,7 @@ server <- function(input, output) {
       addCircleMarkers(data = o2_plot_df(), 
                        lng = ~long, 
                        lat = ~lat,
+                       layerId = ~Stedtekst,
                        stroke =F, 
                        radius = 4,
                        label = ~Resultat,
@@ -526,18 +548,50 @@ server <- function(input, output) {
     updateSliderInput(inputId = "o2_year_select", min = min(selected_year_o2[,year(Dato)], na.rm=T), max = max(selected_year_o2[,year(Dato)], na.rm=T))
   })
   
-  observeEvent(input$previous_week,
-               {
-                 selected_week <- input$o2_week_select
-                 selected_week <- selected_week-1
-                 updateSliderInput(inputId = "o2_week_select", value = selected_week)
-               })
-  observeEvent(input$next_week,
-               {
-                 selected_week <- input$o2_week_select
-                 selected_week <- selected_week+1
-                 updateSliderInput(inputId = "o2_week_select", value = selected_week)
-               })
+  # Oxygen development ----
+  #### Udvikling
+  observeEvent(input$o2_plot_output_marker_click,{
+    updateNavlistPanel(session, "inTabset", "oxygen_development_page")
+    
+    ilt_df %>% 
+      filter(Stedtekst == input$o2_plot_output_marker_click$id) %>% 
+      mutate(year = year(Dato)) %>% 
+      pull(year) -> date_for_selected_o2 
+    
+    updateSliderInput(inputId = "selected_click_year", min = min(date_for_selected_o2, na.rm=T), max = max(date_for_selected_o2, na.rm=T))
+    
+  })
+  
+  output$oxygen_development_plot <- renderPlot({
+    req(input$o2_plot_output_marker_click$id)
+    
+    id_select <- input$o2_plot_output_marker_click$id
+    
+    ilt_df %>% 
+      filter(Stedtekst == id_select,
+             between(year(Dato), input$selected_click_year[1],input$selected_click_year[2])) -> selected_click
+
+    myPalette <- colorRampPalette(colors = c("#A50026","#D73027","#F46D43","#D9EF8B","#66BD63","#006837"))
+    
+    sc <- scale_fill_gradientn(colours = myPalette(100), limits=c(0, 10),na.value = "#006837", breaks = c(0,2,4,6,8,10))
+    
+    selected_click %>%
+      ggplot(aes(Dato, Dybde)) + 
+      geom_point(size = 3,aes(fill = Resultat), col = "black", shape = 21) + 
+      scale_x_datetime(date_labels = "%F") +
+      theme(title = element_text(size = 18)) + 
+      scale_y_reverse() +
+      labs(x= "Dato", 
+           y = "Dybde (m)",
+           fill = "Ilt koncentration (mg/l)") -> o2_develeopment_plot
+  
+    done_plot <- o2_develeopment_plot + sc + guides(fill=guide_colourbar(theme = theme(legend.key.width  = unit(10, "cm")))) 
+      
+    print(done_plot)
+    
+  })
+  
+  
   
 }
 
