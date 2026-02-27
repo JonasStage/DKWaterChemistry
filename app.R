@@ -18,10 +18,6 @@ theme_set(theme(panel.background = element_blank(),
                 axis.title.y = element_text(margin = margin(t = 0, r = 10, b = 0, l = 0), angle = 90),
                 axis.title.y.right = element_text(margin = margin(t = 0, r = 0, b = 0, l = 10))))
 
-######## TO DO LIST ######## 
-######## Add plotly to o2 plot and chem plot ########
-######## See if this helps on the readability on chem plot ########
-
 
 # Read in data ----
 
