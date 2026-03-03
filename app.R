@@ -428,11 +428,9 @@ server <- function(input, output, session) {
   
   # Plot graphical data ----
   
-  output$chem_plot_output <- plotly::renderPlotly({
+  chem_plot <- reactive({
     req(input$analysis_plot_select)
     req(filtered_data())
-    
-    print(filtered_data())
     
     filtered_data() %>% 
       filter(Stofparameter %in% input$analysis_plot_select ,
@@ -463,17 +461,22 @@ server <- function(input, output, session) {
            fill = "Stedtekst") + 
       scale_shape_manual(values = c(21,22,24))-> chem_plot
     
-    plotly::ggplotly(chem_plot + theme(legend.position = "none")) -> chem_plot_plotly
+    return(chem_plot) 
+  })
+  
+  output$chem_plot_output <- plotly::renderPlotly({
+    req(chem_plot())
+    
+    plotly::ggplotly(chem_plot() + theme(legend.position = "none")) -> chem_plot_plotly
     
    print(chem_plot_plotly)
   })
   
   output$chem_legend <- renderPlot({
-    req(chem_plot)
-    
+    req(chem_plot())
     
     # Extract the legend. Returns a gtable
-    leg <- get_legend(chem_plot) %>% 
+    leg <- get_legend(chem_plot()) %>% 
       as_ggplot()
     
     print(leg)
