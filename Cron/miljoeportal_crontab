@@ -1,0 +1,7 @@
+# ============================================================================
+# Miljøportalen data sync schedules
+# Install with: crontab miljoeportal_crontab
+# ============================================================================
+
+# DKWaterChemistry full sync (cleanup + download + filter) - every Monday at 02:00
+0 2 * * 1 /opt/scripts/miljoeportal_sync.sh dk_water_all >> /var/log/miljoeportal_sync.log 2>&1

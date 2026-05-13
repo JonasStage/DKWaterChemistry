@@ -1,0 +1,6 @@
+# Miljøportalen API credentials
+# Copy to /etc/miljoeportal.conf and set permissions:
+#   sudo cp miljoeportal.conf.template /etc/miljoeportal.conf
+#   sudo chmod 600 /etc/miljoeportal.conf
+API_USER="your_api_user_here"
+API_PASS="your_api_pass_here"
